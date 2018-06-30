@@ -4,7 +4,7 @@ Analyzes data from PostgreSQL and displays results.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+Make sure you have Python 2.7 and PostgreSQL installed onto your machine.
 
 ### Prerequisites
 
