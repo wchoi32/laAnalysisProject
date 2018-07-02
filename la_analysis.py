@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python
 import psycopg2
 
 DBNAME = "news"
@@ -8,11 +8,10 @@ def first_question_answer():
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
     c.execute(
-        "select articles.title, count(*) "
-        "from articles join log on log.path "
-        "like '%' || articles.slug || '%' "
-        "group by articles.title "
-        "order by count desc limit 3;")
+        "SELECT articles.title, count(*) "
+        "FROM articles JOIN log ON log.path = '/article/' || articles.slug "
+        "GROUP BY articles.title "
+        "ORDER BY count DESC LIMIT 3;")
     answer_one = c.fetchall()
 
     q_one = "What are the most popular three articles of all time?"
@@ -27,13 +26,12 @@ def second_question_answer():
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
     c.execute(
-        "select authors.name, count(*) "
-        "from authors join articles "
-        "on authors.id = articles.author "
-        "join log on log.path "
-        "like '%' || articles.slug || '%' "
-        "group by authors.name "
-        "order by count desc;")
+        "SELECT authors.name, count(*) "
+        "FROM authors JOIN articles "
+        "ON authors.id = articles.author "
+        "JOIN log ON log.path = '/article/' || articles.slug "
+        "GROUP BY authors.name "
+        "ORDER BY count DESC;")
     answer_two = c.fetchall()
 
     q_two = "Who are the most popular article authors of all time?"
@@ -48,22 +46,22 @@ def third_question_answer():
     db = psycopg2.connect(database=DBNAME)
     c = db.cursor()
     c.execute(
-        "create view all_count as select date(time) as day, "
-        "count(*) as all_method from log group by day;")
+        "CREATE OR REPLACE VIEW all_count AS SELECT date(time) AS day, "
+        "count(*) AS all_method FROM log GROUP BY day;")
     c.execute(
-        "create view error_count as select date(time) as day, "
-        "count(*) as error_method from log "
-        "where status like '%404%' group by day;")
+        "CREATE OR REPLACE VIEW error_count AS SELECT date(time) AS day, "
+        "count(*) AS error_method FROM log "
+        "where status  = '404 NOT FOUND' GROUP BY day;")
     c.execute(
-        "create view error_percent as select error_count.day, "
+        "CREATE OR REPLACE VIEW error_percent AS SELECT error_count.day, "
         "error_count.error_method * 100/ all_count.all_method::decimal "
-        "as error_rate "
-        "from error_count, all_count where error_count.day = all_count.day;")
+        "AS error_rate "
+        "FROM error_count, all_count WHERE error_count.day = all_count.day;")
     c.execute(
-        "select day, error_rate "
-        "from error_percent "
+        "SELECT day, error_rate "
+        "FROM error_percent "
         "where error_rate >= 1 "
-        "order by error_rate desc;")
+        "ORDER BY error_rate DESC;")
     answer_three = c.fetchall()
 
     q_three = "On which days did more than 1% of requests lead to errors?"
